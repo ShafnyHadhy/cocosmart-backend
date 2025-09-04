@@ -12,9 +12,7 @@ export async function createProduct(req, res){
 
     try{
         const productData = req.body;
-
         const product = new Product(productData);
-
         await product.save();
 
         res.json({

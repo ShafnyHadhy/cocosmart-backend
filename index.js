@@ -1,10 +1,12 @@
 import express from "express";
-import mongoose from "mongoose"; //library to establish database connection
-import userRouter from "./routes/userRouter.js";
+import mongoose from "mongoose";
 import jwt from 'jsonwebtoken'
 import cors from 'cors';
 import dotenv from 'dotenv';
+import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
+import expenseRouter from "./routes/expenseRouter.js";
+import financeRouter from "./routes/financeRouter.js";
 
 //loads whats inside on .env file
 dotenv.config();
@@ -33,7 +35,7 @@ app.use(
                    if(decoded == null){
                         res.json(
                             {
-                                message: "Invalid token please login agin."
+                                message: "Invalid token please login again."
                             }
                         )
                         return
@@ -63,6 +65,8 @@ mongoose.connect(connectionString).then(
 
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
+app.use("/api/expenses", expenseRouter);
+app.use("/api/finances", financeRouter);
 
 app.listen(5000, 
     ()=>{
