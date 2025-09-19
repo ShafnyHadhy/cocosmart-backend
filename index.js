@@ -4,7 +4,8 @@ import userRouter from "./routes/userRouter.js";
 import jwt from 'jsonwebtoken'
 import cors from 'cors';
 import dotenv from 'dotenv';
-
+import productRouter from "./routes/productRouter.js";
+import plantationRouter from "./routes/plantationRouter.js";
 //loads whats inside on .env file
 dotenv.config();
 
@@ -61,6 +62,8 @@ mongoose.connect(connectionString).then(
 )
 
 app.use("/api/users", userRouter)
+app.use("/api/products", productRouter)
+app.use("/api/plots", plantationRouter);
 
 app.listen(5000, 
     ()=>{
