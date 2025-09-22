@@ -7,6 +7,7 @@ import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
 import expenseRouter from "./routes/expenseRouter.js";
 import financeRouter from "./routes/financeRouter.js";
+import orderRouter from "./routes/orderRouter.js";
 
 //loads whats inside on .env file
 dotenv.config();
@@ -65,6 +66,7 @@ mongoose.connect(connectionString).then(
 
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter)
 app.use("/api/expenses", expenseRouter);
 app.use("/api/finances", financeRouter);
 

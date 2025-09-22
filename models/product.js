@@ -46,6 +46,10 @@ const productSchema = new mongoose.Schema(
             type: Number,
             //required: true,
             default: 0 
+        },
+        isTrending: {
+            type: Boolean,
+            default: false
         }
     }
 )

@@ -41,6 +41,17 @@ export async function getProducts(req, res){
     }
 }
 
+export async function getTrendingProducts(req, res) {
+    try {
+        const trendingProducts = await Product.find({ isTrending: true });
+        res.json(trendingProducts);
+    } catch (err) {
+        res.status(500).json({
+            message: "Failed to get trending products" 
+        });
+    }
+};
+
 export async function deleteProduct(req, res){
 
     if(!isAdmin(req)){
