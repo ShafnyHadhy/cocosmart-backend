@@ -1,69 +1,49 @@
 import express from "express";
-import mongoose from "mongoose"; //library to establish database connection
-import userRouter from "./routes/userRouter.js";
-import jwt from 'jsonwebtoken'
-import cors from 'cors';
-import dotenv from 'dotenv';
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
-//loads whats inside on .env file
+// Routes
+import deliveryRoutes from "./routes/deliveryRoutes.js";
+import driverRoutes from "./routes/driverRoutes.js";
+import vehicleRoutes from "./routes/vehicleRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
+import userRoutes from "./routes/userRouter.js";
+// { requestPasswordReset } from "../controllers/userController.js";
+
 dotenv.config();
-
-//making const variable
 const app = express();
 
-//a middleware to connect backend and frontend
+// Middleware
 app.use(cors());
+app.use(express.json()); // JSON body parsing
 
-//Middleware to parse JSON bodies
-app.use(express.json())
+// Optional JWT middleware
+app.use((req, res, next) => {
+  const token = req.header("Authorization");
+  if (token) {
+    const cleanedToken = token.replace("Bearer ", "");
+    jwt.verify(cleanedToken, process.env.JWT_SECRET, (err, decoded) => {
+      if (!err) req.user = decoded;
+    });
+  }
+  next();
+});
 
-//Middleware to parse requests with token
-app.use(
-    (req,res,next)=>{
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("Database connected successfully!"))
+  .catch((err) => console.error("Database connection failed:", err));
 
-        let token = req.header("Authorization")
+// Routes
+app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/users", userRoutes);
 
-        if(token != null){
-
-            token = token.replace("Bearer ", "")
-            
-            jwt.verify(token, process.env.JWT_SECRET,
-                (err,decoded)=>{
-                   if(decoded == null){
-                        res.json(
-                            {
-                                message: "Invalid token please login agin."
-                            }
-                        )
-                        return
-                   }else{
-                        req.user = decoded
-                   }
-                }
-            )
-        }
-        next()
-    }
-)
-
-//link to connect backend with mongoDB
-const connectionString = process.env.MONGO_URI;
-
-//connect DB and project
-mongoose.connect(connectionString).then(
-    ()=>{
-        console.log("Your database connected successfully!")
-    }
-).catch(
-    ()=>{
-        console.log("Database connection failed...")
-    }
-)
-
-app.use("/api/users", userRouter)
-
-app.listen(5000, 
-    ()=>{
-        console.log("Server is running on port 5000...")
-    }
-)
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}...`));
