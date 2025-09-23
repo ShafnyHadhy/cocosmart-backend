@@ -39,12 +39,12 @@ const productSchema = new mongoose.Schema(
         },
         stock: {
             type: Number,
-            //required: true,
+            required: true,
             default: 0
         },
         cost: {
             type: Number,
-            //required: true,
+            required: true,
             default: 0 
         },
         isTrending: {
