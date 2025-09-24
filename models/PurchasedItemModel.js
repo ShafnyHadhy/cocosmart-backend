@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 //this function is to prevent entering past days as expire date
@@ -20,7 +20,7 @@ const purchasedItemSchema = new Schema({
     type: String,
     required: true,
   },
-  item_description: {
+  category: {
     type: String,
     required: true,
   },
@@ -57,7 +57,5 @@ const purchasedItemSchema = new Schema({
   },
 });
 
-module.exports = mongoose.model(
-  "PurchasedItemModel", //file name
-  purchasedItemSchema //function name
-);
+const PurchasedItem = mongoose.model('PurchasedItem', purchasedItemSchema);
+export default PurchasedItem;

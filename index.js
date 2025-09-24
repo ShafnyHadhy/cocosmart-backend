@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import productRouter from "./routes/productRouter.js";
 // const cocoProductRouter = require("./routes/CocoProductRoute");
 import cocoProductRouter from "./routes/CocoProductRoute.js";
+import purchasedItemRouter from "./routes/PurchasedItemRoute.js";
 
 
 
@@ -69,6 +70,7 @@ mongoose.connect(connectionString).then(
 app.use("/api/users", userRouter)
 app.use("/api/products" , productRouter)
 app.use("/api/cocoProducts", cocoProductRouter)
+app.use("/api/purchasedItems", purchasedItemRouter)
 
 app.listen(5000, 
     ()=>{

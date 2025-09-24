@@ -3,26 +3,6 @@ import CocoProduct from '../models/CocoProductModel.js';
 
 //const { default: CocoProduct } = require("../models/CocoProductModel");
 
-//display part
-export async function getAllCocoProducts(req, res, next){
-  let cocoProducts;
-
-  //get all users
-  try {
-    cocoProducts = await CocoProduct.find();
-  } catch (err) {
-    console.log(err);
-  }
-
-  //not found
-  if (!cocoProducts) {
-    return res.status(404).json({ message: "Coco Product not found" });
-  }
-
-  //display all users
-  return res.status(200).json({ cocoProducts });
-};
-
 
 //data insert part
 export async function addCocoProducts (req, res, next) {
@@ -71,6 +51,26 @@ export async function addCocoProducts (req, res, next) {
 };
 
 
+//display part
+export async function getAllCocoProducts(req, res, next){
+  let cocoProducts;
+
+  //get all users
+  try {
+    cocoProducts = await CocoProduct.find();
+  } catch (err) {
+    console.log(err);
+  }
+
+  //not found
+  if (!cocoProducts) {
+    return res.status(404).json({ message: "Coco Product not found" });
+  }
+
+  //display all users
+  return res.status(200).json({ cocoProducts });
+};
+
 
 //get by Id
 export async function getCocoProductById (req, res, next){
@@ -92,6 +92,7 @@ export async function getCocoProductById (req, res, next){
 };
 
 
+//Update
 export async function updateCocoProduct  (req, res, next) {
   const id = req.params.id;
 
@@ -177,7 +178,7 @@ export async function checkProId (req, res) {
   }
 };
 
-//Create Coco Products Inventory 
+//Create Coco Products Inventory report function
 export async function getCocoInventoryReport (req, res) {
   try {
     // thresholds
