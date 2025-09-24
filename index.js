@@ -5,7 +5,8 @@ import jwt from 'jsonwebtoken'
 import cors from 'cors';
 import dotenv from 'dotenv';
 import productRouter from "./routes/productRouter.js";
-
+// const cocoProductRouter = require("./routes/CocoProductRoute");
+import cocoProductRouter from "./routes/CocoProductRoute.js";
 
 
 
@@ -67,7 +68,7 @@ mongoose.connect(connectionString).then(
 
 app.use("/api/users", userRouter)
 app.use("/api/products" , productRouter)
-
+app.use("/api/cocoProducts", cocoProductRouter)
 
 app.listen(5000, 
     ()=>{
