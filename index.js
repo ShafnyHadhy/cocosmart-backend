@@ -8,6 +8,7 @@ import productRouter from "./routes/productRouter.js";
 // const cocoProductRouter = require("./routes/CocoProductRoute");
 import cocoProductRouter from "./routes/CocoProductRoute.js";
 import purchasedItemRouter from "./routes/PurchasedItemRoute.js";
+import supplierRouter from "./routes/SupplierRoute.js";
 
 
 
@@ -71,6 +72,7 @@ app.use("/api/users", userRouter)
 app.use("/api/products" , productRouter)
 app.use("/api/cocoProducts", cocoProductRouter)
 app.use("/api/purchasedItems", purchasedItemRouter)
+app.use("/api/suppliers", supplierRouter)
 
 app.listen(5000, 
     ()=>{
