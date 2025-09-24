@@ -177,3 +177,25 @@ export async function changePassword(req, res) {
     res.status(500).json({ message: "Failed to change password" });
   }
 }
+
+export function isAdmin(req) {
+  if (req.user == null) {
+    return false;
+  }
+  if (req.user.role != "admin") {
+    return false;
+  }
+
+  return true;
+}
+
+export function isCustomer(req) {
+  if (req.user == null) {
+    return false;
+  }
+  if (req.user.role != "user") {
+    return false;
+  }
+
+  return true;
+}
