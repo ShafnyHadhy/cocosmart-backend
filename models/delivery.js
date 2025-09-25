@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 
 const deliverySchema = new mongoose.Schema(
   {
-    orderId: { type: String, required: true }, // You’ve made it central to the workflow
+    order: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Order",
+      required: true,
+    },
     vehicle: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vehicle",
@@ -25,7 +29,7 @@ const deliverySchema = new mongoose.Schema(
     transportCost: { type: Number },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt automatically
+    timestamps: true,
   }
 );
 
