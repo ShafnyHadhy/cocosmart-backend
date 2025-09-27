@@ -21,13 +21,16 @@ const router = express.Router();
 // router.get("/check-pro-id", CocoProductController.checkProId);
 router.get("/", getAllCocoProducts);
 router.post("/", addCocoProducts);
+
+router.get("/report/pdf", getCocoInventoryReportPDF);
+router.get("/check-pro-id", checkProId); 
+
 router.get("/:id", getCocoProductById);         // GET /api/cocoProducts/:id
 router.put("/:id", updateCocoProduct);          // PUT /api/cocoProducts/:id
 router.delete("/:id", deleteCocoProduct);   
 
-router.get("/check-pro-id", checkProId);        // GET /api/cocoProducts/check-pro-id?pro_id=...
-router.get("/report", getCocoInventoryReport);
-router.get("/report/pdf", getCocoInventoryReportPDF); 
+       // GET /api/cocoProducts/check-pro-id?pro_id=...
+//router.get("/report", getCocoInventoryReport);
 // router.post("/", CocoProductController.addCocoProducts);
 // router.get("/:id", CocoProductController.getCocoProductById);
 // router.put("/:id", CocoProductController.updateCocoProduct);
