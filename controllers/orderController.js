@@ -187,3 +187,28 @@ export async function updatOrderStatus(req, res) {
     return;
   }
 }
+
+// GET /api/orders/:orderID
+export async function getOrderByID(req, res) {
+  const { orderID } = req.params;
+
+  try {
+    const order = await Order.findOne({ orderID });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Optionally: if customer, ensure they own the order
+    if (isCustomer(req) && order.email !== req.user.email) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized access to this order" });
+    }
+
+    res.json(order);
+  } catch (err) {
+    console.error("Error in getOrderByID:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
