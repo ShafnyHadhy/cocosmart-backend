@@ -56,7 +56,7 @@ export async function createExpense(req, res) {
 
 export async function getAllExpenses(req, res) {
     try {
-        const expenses = await Expense.find();
+        const expenses = await Expense.find().sort({ date: -1});
         res.status(200).json(expenses);
     } catch (err) {
         console.error(err);
