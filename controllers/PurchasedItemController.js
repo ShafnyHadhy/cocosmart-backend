@@ -10,6 +10,7 @@ export async function addPurchasedItems(req, res, next) {
     unit_cost,
     ROL,
     quantity,
+    expire_date,
     supplier,
   } = req.body;
 
@@ -24,6 +25,7 @@ export async function addPurchasedItems(req, res, next) {
       unit_cost,
       ROL,
       quantity,
+      ...(expire_date ? { expire_date: new Date(expire_date) } : {}),
       supplier,
     });
     await purchasedItems.save();
@@ -94,6 +96,7 @@ export async function updatePurchasedItem(req, res, next) {
     unit_cost,
     ROL,
     quantity,
+    expire_date ,
     supplier,
   } = req.body;
 
@@ -106,6 +109,12 @@ export async function updatePurchasedItem(req, res, next) {
     quantity,
     supplier,
   };
+   // handle expire_date: set to null to clear, or set to Date if provided
+if (expire_date === null || expire_date === "") {
+ allowed.expire_date = null;
+} else if (expire_date) {
+  allowed.expire_date = new Date(expire_date);
+ }
 
   let purchasedItems;
   try {
