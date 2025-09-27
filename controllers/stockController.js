@@ -18,6 +18,23 @@ export async function addStock(req, res, next) {
   let stock;
 
   try {
+      // ===== Validate date: must be between today and 7 days ago =====
+  if (date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7);
+
+    const enteredDate = new Date(date);
+
+    if (enteredDate < oneWeekAgo || enteredDate > today) {
+      return res.status(400).json({
+        message: "Date must be within the last 7 days and not in the future.",
+      });
+    }
+  }
+
     stock = new Stock({
       stock_id,
       item_id,
@@ -107,12 +124,27 @@ export async function updateStock(req, res, next) {
     enter_by,
   };
 
-  // handle date separately
+    // handle date separately with validation
   if (date === null || date === "") {
-    allowed.date = null;
+    //allowed.date = null;
   } else if (date) {
-    allowed.date = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7);
+
+    const enteredDate = new Date(date);
+
+    if (enteredDate < oneWeekAgo || enteredDate > today) {
+      return res.status(400).json({
+        message: "Date must be within the last 7 days and not in the future.",
+      });
+    }
+
+    allowed.date = enteredDate;
   }
+
 
   let stock;
   try {
