@@ -12,6 +12,8 @@ import deliveryRoutes from "./routes/deliveryRoutes.js";
 import driverRoutes from "./routes/driverRoutes.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import orderRouter from "./routes/orderRouter.js";
+import productRouter from "./routes/productRouter.js";
 import userRoutes from "./routes/userRouter.js";
 // { requestPasswordReset } from "../controllers/userController.js";
 
@@ -106,6 +108,8 @@ app.use("/api/drivers", driverRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter);
 
 app.listen(5000, 
     ()=>{
