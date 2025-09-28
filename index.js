@@ -4,6 +4,9 @@ import userRouter from "./routes/userRouter.js";
 import jwt from 'jsonwebtoken'
 import cors from 'cors';
 import dotenv from 'dotenv';
+import productRouter from "./routes/productRouter.js";
+import taskRouter from './routes/taskRoutes.js';
+import workerRouter from './routes/workerRoutes.js';
 
 //loads whats inside on .env file
 dotenv.config();
@@ -61,6 +64,9 @@ mongoose.connect(connectionString).then(
 )
 
 app.use("/api/users", userRouter)
+app.use("/api/products", productRouter)
+app.use('/api/tasks', taskRouter);
+app.use('/api/workers', workerRouter);
 
 app.listen(5000, 
     ()=>{
