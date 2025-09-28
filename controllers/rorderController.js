@@ -14,7 +14,7 @@ function computeTotal(unit_cost, qty) {
 
 /**
  * Create
- * - Status always starts as "pending" (even if sent in body)
+ * - Status always starts as "Pending" (even if sent in body)
  * - tot_value auto-computed if missing or out-of-sync
  * - Anyone can call, but typically Inventory Manager
  */
@@ -38,7 +38,7 @@ export async function addRorder(req, res) {
       qty: toNumber(qty),
       tot_value: total, // keep source of truth
       requested_by,
-      status: "pending",
+      status: "Pending",
     });
 
     await doc.save();
@@ -105,6 +105,8 @@ export async function updateRorder(req, res) {
     unit_cost: unit_cost !== undefined ? toNumber(unit_cost) : undefined,
     qty: qty !== undefined ? toNumber(qty) : undefined,
     requested_by,
+    status: status !== undefined ? status : undefined,  //////////////////////////////////////////////////////////////////////////////////////////////////////rREMOVE
+
   };
 
   // clean undefineds
@@ -122,9 +124,9 @@ export async function updateRorder(req, res) {
   }
 
   // Explicitly block status changes here
-  if (status !== undefined) {
-    return res.status(403).json({ message: "Status can only be edited by admin" });
-  }
+//   if (status !== undefined) {
+//     return res.status(403).json({ message: "Status can only be edited by admin" });///////////////////////////////////////////////////////////////////////////////////////////////////////////////ADD
+//   }
 
   try {
     const rorder = await Rorder.findByIdAndUpdate(id, { $set: update }, { new: true, runValidators: true });
@@ -138,7 +140,7 @@ export async function updateRorder(req, res) {
 
 /**
  * Admin-only: Update status
- * - Accepts: pending | approved | rejected
+ * - Accepts: Pending | Approved | Rejected
  * - Rejects non-admin roles
  */
 export async function adminStatusUpdate(req, res) {
@@ -151,7 +153,7 @@ export async function adminStatusUpdate(req, res) {
     return res.status(403).json({ message: "Only admin can update status" });
   }
 
-  if (!["pending", "approved", "rejected"].includes(status)) {
+if (!["Pending", "Approved", "Rejected", "Ordered"].includes(status)) {
     return res.status(400).json({ message: "Invalid status value" });
   }
 

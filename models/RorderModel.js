@@ -1,4 +1,4 @@
-// models/RorderModel.jsx
+// models/RorderModel.js
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
@@ -38,8 +38,8 @@ const rorderSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["Pending", "Approved", "Rejected","Ordered"],
+      default: "Pending",
       index: true,
     },
   },
