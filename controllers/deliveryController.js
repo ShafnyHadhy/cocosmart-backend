@@ -73,8 +73,8 @@ export const updateDeliveryStatus = async (req, res) => {
     }
 
     // Auto-calculate fuel used and transport cost
-    const fuelUsed = km / 5;
-    const transportCost = fuelUsed * 450;
+    const fuelUsed = km / 30;
+    const transportCost = fuelUsed * 100;
 
     delivery.km = km;
     delivery.fuelUsed = fuelUsed;
