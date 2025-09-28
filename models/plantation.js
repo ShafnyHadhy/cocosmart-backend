@@ -32,9 +32,7 @@ const plotSchema = new mongoose.Schema(
       required: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  
 );
 
 export default mongoose.model("Plot", plotSchema);
