@@ -19,21 +19,20 @@ export async function addStock(req, res, next) {
 
   try {
       // ===== Validate date: must be between today and 7 days ago =====
-  if (date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+ if (!date) {
+  return res.status(400).json({ message: "Date is required." });
+}
 
-    const oneWeekAgo = new Date(today);
-    oneWeekAgo.setDate(today.getDate() - 7);
+const d = new Date(date); // may be parsed as UTC midnight
+const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // local 00:00
+const todayDay = new Date(); todayDay.setHours(0,0,0,0);
+const oneWeekAgo = new Date(todayDay); oneWeekAgo.setDate(todayDay.getDate() - 7);
 
-    const enteredDate = new Date(date);
-
-    if (enteredDate < oneWeekAgo || enteredDate > today) {
-      return res.status(400).json({
-        message: "Date must be within the last 7 days and not in the future.",
-      });
-    }
-  }
+if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
+  return res.status(400).json({
+    message: "Date must be within the last 7 days and not in the future.",
+  });
+}
 
     stock = new Stock({
       stock_id,
@@ -43,7 +42,7 @@ export async function addStock(req, res, next) {
       reason,
       qty,
       tot_value,
-      ...(date ? { date: new Date(date) } : {}),
+     date: enteredDay,   
       enter_by,
     });
     await stock.save();
@@ -125,25 +124,22 @@ export async function updateStock(req, res, next) {
   };
 
     // handle date separately with validation
-  if (date === null || date === "") {
-    //allowed.date = null;
-  } else if (date) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+ if (date === null || date === "") {
+  // leave existing date as-is
+} else if (date) {
+  const d = new Date(date);
+  const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const todayDay = new Date(); todayDay.setHours(0,0,0,0);
+  const oneWeekAgo = new Date(todayDay); oneWeekAgo.setDate(todayDay.getDate() - 7);
 
-    const oneWeekAgo = new Date(today);
-    oneWeekAgo.setDate(today.getDate() - 7);
-
-    const enteredDate = new Date(date);
-
-    if (enteredDate < oneWeekAgo || enteredDate > today) {
-      return res.status(400).json({
-        message: "Date must be within the last 7 days and not in the future.",
-      });
-    }
-
-    allowed.date = enteredDate;
+  if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
+    return res.status(400).json({
+      message: "Date must be within the last 7 days and not in the future.",
+    });
   }
+  allowed.date = enteredDay; // << IMPORTANT
+}
+
 
 
   let stock;

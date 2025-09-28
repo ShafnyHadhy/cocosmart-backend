@@ -8,6 +8,7 @@ import {
   deleteStock,
   checkStockId,
 } from "../controllers/stockController.js";
+import { getStocksReportPDF } from "../controllers/stockReportController.js";
 
 const router = express.Router();
 
@@ -19,6 +20,7 @@ router.get("/", getAllStocks);
 
 // Utility: check stock_id availability
 router.get("/check/stockid", checkStockId);
+router.get("/report/pdf", getStocksReportPDF);
 
 // Read by Mongo _id
 router.get("/:id", getStockById);

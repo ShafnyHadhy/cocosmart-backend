@@ -10,6 +10,7 @@ import cocoProductRouter from "./routes/CocoProductRoute.js";
 import purchasedItemRouter from "./routes/PurchasedItemRoute.js";
 import supplierRouter from "./routes/SupplierRoute.js";
 import stockRoutes from "./routes/stockRoutes.js";
+import rorderRoutes from "./routes/rorderRoutes.js"; 
 
 
 
@@ -74,7 +75,8 @@ app.use("/api/products" , productRouter)
 app.use("/api/cocoProducts", cocoProductRouter)
 app.use("/api/purchasedItems", purchasedItemRouter)
 app.use("/api/suppliers", supplierRouter)
-app.use("/api/stock", stockRoutes);
+app.use("/api/stocks", stockRoutes);
+app.use("/api/rorders", rorderRoutes);  
 
 app.listen(5000, 
     ()=>{
