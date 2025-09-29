@@ -43,7 +43,21 @@ export const createWorker = async (req, res) => {
 export const listWorkers = async (_req, res) => {
   try {
     const workers = await Worker.find();
-    res.json({ workers });
+    const users = await User.find({ email: { $in: workers.map(w => w.userEmail) } }).select("email firstname lastname phone image");
+    
+    const workersWithUserData = workers.map(worker => {
+      const user = users.find(u => u.email === worker.userEmail);
+      return {
+        ...worker.toObject(),
+        name: user ? `${user.firstname} ${user.lastname}` : worker.userEmail,
+        firstname: user?.firstname || "",
+        lastname: user?.lastname || "",
+        phone: user?.phone || "",
+        image: user?.image || ""
+      };
+    });
+    
+    res.json({ workers: workersWithUserData });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -153,6 +167,44 @@ export const getWorkerWithTasks = async (req, res) => {
         phone: user.phone || "",
         image: user.image || "",
         assignedTasks: tasks
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Get worker by email
+export const getWorkerByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const worker = await Worker.findOne({ userEmail: email });
+    
+    if (!worker) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+    
+    const user = await User.findOne({ email: worker.userEmail });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Calculate age
+    const today = new Date();
+    const birthDate = new Date(worker.dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    res.json({
+      worker: {
+        ...worker.toObject(),
+        name: `${user.firstname} ${user.lastname}`,
+        age,
+        phone: user.phone || "",
+        image: user.image || ""
       }
     });
   } catch (err) {

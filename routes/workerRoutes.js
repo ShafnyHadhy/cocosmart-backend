@@ -11,6 +11,7 @@ import {
   updateWorkerProfile,
   getWorkforceAnalytics,
   updateWorkerPerformance,
+  getWorkerByEmail,
 } from "../controllers/workerController.js";
 
 const router = express.Router();
@@ -18,6 +19,7 @@ const router = express.Router();
 router.get("/", listWorkers);
 router.post("/", createWorker);
 router.get("/analytics", getWorkforceAnalytics); // workforce analytics
+router.get("/email/:email", getWorkerByEmail); // get worker by email
 router.get("/:workerId", getWorker);
 router.get("/:workerId/details", getWorkerWithTasks);
 router.put("/:workerId", updateWorker);
