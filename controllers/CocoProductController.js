@@ -4,6 +4,49 @@ import CocoProduct from '../models/CocoProductModel.js';
 //const { default: CocoProduct } = require("../models/CocoProductModel");
 
 
+
+import Stock from "../models/StockModel.js";
+import { v4 as uuidv4 } from "uuid";
+function todayAt00() {
+  const t = new Date(); t.setHours(0,0,0,0); return t;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function logStock({ item_id, type, reason, qty, std_cost, unit_cost, enter_by }) {
+  if (!qty || qty <= 0) return;
+  await Stock.create({
+    item_id,
+    category: "product" || "purchased",  // depending on controller
+    type,
+    reason,
+    qty,
+    tot_value: Number(std_cost || unit_cost || 0) * Number(qty || 0),
+    date: todayAt00(),
+    enter_by: enter_by || "system",
+  });
+}
+
+
 //data insert part
 export async function addCocoProducts (req, res, next) {
   const {
@@ -35,6 +78,15 @@ export async function addCocoProducts (req, res, next) {
       updated_by,
     });
     await cocoProducts.save();
+    await logStock({
+  item_id: pro_id,
+  type: "in",
+  reason: "coco-create",
+  qty: Number(qty_on_hand || 0),
+  std_cost: Number(std_cost || 0),
+  enter_by: updated_by,
+});
+
   } catch (err) {
     console.log(err);
     //this add nice error for duplicate pro_id
@@ -95,6 +147,8 @@ export async function getCocoProductById (req, res, next){
 //Update
 export async function updateCocoProduct  (req, res, next) {
   const id = req.params.id;
+  const oldDoc = await CocoProduct.findById(id).lean();
+
 
   const {
     pro_id, // stripped (locked)
@@ -129,6 +183,38 @@ export async function updateCocoProduct  (req, res, next) {
       { $set: allowed },
       { new: true, runValidators: true }
     );
+    if (oldDoc) {
+  const oldOnHand = Number(oldDoc.qty_on_hand || 0);
+  const newOnHand = Number(cocoProducts.qty_on_hand || 0);
+  const incOnHand = newOnHand - oldOnHand;
+
+  if (incOnHand > 0) {
+    await logStock({
+      item_id: oldDoc.pro_id,
+      type: "in",
+      reason: "products-in",
+      qty: incOnHand,
+      std_cost: Number(cocoProducts.std_cost || 0),
+      enter_by: cocoProducts.updated_by,
+    });
+  }
+
+  const oldRes = Number(oldDoc.qty_reserved || 0);
+  const newRes = Number(cocoProducts.qty_reserved || 0);
+  const incRes = newRes - oldRes;
+
+  if (incRes > 0) {
+    await logStock({
+      item_id: oldDoc.pro_id,
+      type: "out",
+      reason: "for-sale",
+      qty: incRes,
+      std_cost: Number(cocoProducts.std_cost || 0),
+      enter_by: cocoProducts.updated_by,
+    });
+  }
+}
+
   } catch (err) {
     console.log(err);
   }

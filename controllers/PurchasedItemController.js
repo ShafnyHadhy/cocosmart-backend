@@ -1,5 +1,33 @@
 import PurchasedItem from "../models/PurchasedItemModel.js";
 
+
+
+
+
+
+
+import Stock from "../models/StockModel.js";
+import { v4 as uuidv4 } from "uuid";
+
+function todayAt00() {
+  const t = new Date(); t.setHours(0,0,0,0); return t;
+}
+async function logStock({ item_id, type, reason, qty, std_cost, unit_cost, enter_by }) {
+  if (!qty || qty <= 0) return;
+  await Stock.create({
+    item_id,
+    category: "purchased",  // depending on controller
+    type,
+    reason,
+    qty,
+    tot_value: Number(std_cost || unit_cost || 0) * Number(qty || 0),
+    date: todayAt00(),
+    enter_by: enter_by || "system",
+  });
+}
+
+
+
 //Create
 export async function addPurchasedItems(req, res, next) {
   const {
@@ -29,6 +57,15 @@ export async function addPurchasedItems(req, res, next) {
       supplier,
     });
     await purchasedItems.save();
+    await logStock({
+  item_id,
+  type: "in",
+  reason: "purchase-create",
+  qty: Number(quantity || 0),
+  unit_cost: Number(unit_cost || 0),
+  enter_by: supplier,   // or whoever is logged in if you track users
+});
+
   } catch (err) {
     console.log(err);
     //this add nice error for duplicate pro_id
@@ -86,6 +123,7 @@ export async function getPurchasedItemById(req, res, next) {
 //Update
 export async function updatePurchasedItem(req, res, next) {
   const id = req.params.id;
+  const oldDoc = await PurchasedItem.findById(id).lean();
 
   const {
     item_id, // stripped (locked)
@@ -123,6 +161,31 @@ if (expire_date === null || expire_date === "") {
       { $set: allowed },
       { new: true, runValidators: true }
     );
+    if (oldDoc && purchasedItems) {
+  const oldQty = Number(oldDoc.quantity || 0);
+  const newQty = Number(purchasedItems.quantity || 0);
+
+  if (newQty > oldQty) {
+    await logStock({
+      item_id: oldDoc.item_id,
+      type: "in",
+      reason: "item-purchased",
+      qty: newQty - oldQty,
+      unit_cost: Number(purchasedItems.unit_cost || 0),
+      enter_by: purchasedItems.supplier,
+    });
+  } else if (newQty < oldQty) {
+    await logStock({
+      item_id: oldDoc.item_id,
+      type: "out",
+      reason: "item-used",
+      qty: oldQty - newQty,
+      unit_cost: Number(purchasedItems.unit_cost || 0),
+      enter_by: purchasedItems.supplier,
+    });
+  }
+}
+
   } catch (err) {
     console.log(err);
   }
@@ -170,75 +233,3 @@ export async function checkItemId (req, res) {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-// //Create Coco Products Inventory 
-// export async function getCocoInventoryReport (req, res) {
-//   try {
-//     // thresholds
-//     const minQtyDefault = Number(req.query.minQty ?? 100000); // GLOBAL low-stock threshold
-//     const expDays = Number(req.query.expDays ?? 30);          // expiring soon window (days)
-
-//     const now = new Date();
-//     const soon = new Date(now.getTime() + expDays * 24 * 60 * 60 * 1000);
-
-//     const products = await CocoProduct.find().lean();
-
-//     const totalItems = products.length;
-//     let lowStockCount = 0;
-//     let expiringSoonCount = 0;
-//     let totalValue = 0; // keep total value KPI (qty * avg cost)
-
-//     const rows = products.map(p => {
-//       const qty = Number(p.qty_on_hand || 0);
-//       const cost = Number(p.std_cost || 0);  // keep avg cost
-//       const value = qty * cost;
-//       totalValue += value;
-
-//       const minQty = minQtyDefault;
-
-//       // expiry checks
-//       const hasExpiry = !!p.expire_date;
-//       const expiryDate = hasExpiry ? new Date(p.expire_date) : null;
-//       const daysLeft = hasExpiry ? Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24)) : null;
-//       const isExpiringSoon = hasExpiry && daysLeft > 0 && expiryDate <= soon;
-
-//       // stock checks
-//       const isLowStock = qty < minQty;
-
-//       if (isLowStock) lowStockCount += 1;
-//       if (isExpiringSoon) expiringSoonCount += 1;
-
-//       // note
-//       let note = "";
-//       if (isLowStock) note += `Low stock (min ${minQty}). `;
-//       if (isExpiringSoon) note += `Expiring in ${daysLeft} day(s). `;
-
-//       return {
-//         id: String(p._id),
-//         name: p.pro_name,
-//         qtyOnHand: qty,
-//         avgCost: cost,          
-//         expiryDate: hasExpiry ? expiryDate.toISOString() : null,
-//         isLowStock,
-//         isExpiringSoon,
-//         note: note.trim(),
-//       };
-//     });
-
-//     return res.json({
-//       success: true,
-//       generatedAt: new Date().toISOString(),
-//       kpis: {
-//         totalItems,
-//         lowStockCount,
-//         expiringSoonCount,
-//         totalValue, //still included
-//       },
-//       rows,
-//       params: { minQtyDefault, expDays },
-//     });
-//   } catch (e) {
-//     console.error(e);
-//     return res.status(500).json({ success: false, message: "Server error generating report" });
-//   }
-// };

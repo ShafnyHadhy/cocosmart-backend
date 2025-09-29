@@ -1,225 +1,272 @@
-// const PDFDocument = require("pdfkit");
-// const CocoProduct = require("../Model/CocoProductModel");
+// controllers/CocoProductReportController.js
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import PDFDocument from "pdfkit";
-import CocoProduct from "../models/CocoProductModel.js";  // ✅ fixed path + ESM import
+import CocoProduct from "../models/CocoProductModel.js";
 
+// --- Rules ---
 const LOW_STOCK_THRESHOLD = 10000; // qty_on_hand < 10000 → red
-const EXPIRY_SOON_DAYS = 30; // within 30 days → orange
+const EXPIRY_SOON_DAYS = 30;       // within 30 days → orange
 
-export async function getCocoInventoryReportPDF (req, res) {
+// --- Formatters ---
+const fmtMoney = (n) =>
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .format(Number(n || 0));
+
+const fmtLKR = (n) => `LKR.${fmtMoney(n)}`;
+
+export async function getCocoInventoryReportPDF(req, res) {
   try {
     const products = await CocoProduct.find().lean();
 
     const now = new Date();
-    const soon = new Date(
-      now.getTime() + EXPIRY_SOON_DAYS * 24 * 60 * 60 * 1000
+    const soon = new Date(now.getTime() + EXPIRY_SOON_DAYS * 24 * 60 * 60 * 1000);
+
+    // --- Summary metrics ---
+    const totalItems = products.length;
+    const lowStockCount = products.filter(p => Number(p.qty_on_hand || 0) < LOW_STOCK_THRESHOLD).length;
+    const expiryItemCount = products.filter(p => p.expire_date && new Date(p.expire_date) <= soon).length;
+    const totalInventoryValue = products.reduce(
+      (sum, p) => sum + Number(p.std_cost || 0) * Number(p.qty_on_hand || 0),
+      0
     );
 
-    const totalItems = products.length;
-    const lowStockCount = products.filter(
-      (p) => p.qty_on_hand < LOW_STOCK_THRESHOLD
-    ).length;
-    const expiryItemCount = products.filter(
-      (p) => p.expire_date && new Date(p.expire_date) <= soon
-    ).length;
-
-    // create PDF
+    // --- PDF setup (Finance PDF style) ---
     const doc = new PDFDocument({ size: "A4", margin: 36 });
     res.setHeader("Content-Type", "application/pdf");
-    // before
-    //res.setHeader("Content-Disposition", "inline; filename=cocosmart-inventory.pdf");
-    // make browsers prefer download:
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=cocosmart-inventory.pdf"
-    );
-    // allow frontend to read this header across CORS:
+    res.setHeader("Content-Disposition", "attachment; filename=cocosmart-inventory.pdf");
     res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-
     doc.pipe(res);
 
-    // Branding + title
+    const GREEN = "#2A5540";
+    const BORDER = "#d4d7db";
+    const HEADER_BORDER = "#9bb3a7";
+    const margin = 36;
+    const pageW = doc.page.width;
+    const contentX = margin;
+    const contentW = pageW - margin * 2;
 
-    // Title
-    doc
-      .fillColor("#1a8f3e")
-      .fontSize(22)
-      .text("CocoSmart", { align: "center" });
+    // --- Header / Title ---
+    let y = 35;
 
-    doc
-      .fillColor("#222")
-      .fontSize(16)
-      .text("Coconut Products Inventory Report", { align: "center" });
+    // Optional logo (tolerates missing file)
+    try {
+      const logoPath = path.join(__dirname, "../static/clogo.png");
+      doc.image(logoPath, contentX - 0, y - 20, { width: 90, height: 90 });
+    } catch (e) {
+      console.warn("Logo not found:", e.message);
+    }
 
-    doc
-      .moveDown(0.2)
-      .fontSize(10)
-      .fillColor("#666")
-      .text(`Generated on ${new Date().toLocaleString()}`, { align: "center" });
+    // Company name
+    doc.font("Helvetica-Bold").fillColor("#000").fontSize(20)
+      .text("CocoSmart Pvt Ltd", contentX, y, { width: contentW, align: "center" });
 
-    // Contact info line (all in one line, nicely spaced)
-    doc
-      .moveDown(0.3)
-      .fontSize(10)
-      .fillColor("#444")
-      .text(
-        "CocoSmart Pvt. Ltd. | 123 Green Street, City, Country | Email: info@cocosmart.com | Fax: +1-234-567-890",
-        { align: "center" }
-      );
+    // Tagline
+    doc.moveDown(0.3);
+    doc.font("Helvetica").fillColor("#000").fontSize(14)
+      .text("Smart Solutions for Coconut Plantations", contentX, undefined, {
+        width: contentW, align: "center",
+      });
 
-    doc.moveDown(1.8);
+    // Hotline / Email / Fax
+    doc.moveDown(0.5);
+    doc.font("Helvetica").fillColor("#000").fontSize(9)
+      .text("Hotline: +94 77 123 4567 | Email: info@cocosmart.com  |  Fax: +1-234-567-890",
+        contentX, undefined, { width: contentW, align: "center" });
 
-    // Summary
-    // const top = doc.y;
-    // doc.rect(36, top, doc.page.width - 72, 58).fill("#f7fff8").stroke("#e6f2e9");
-    // doc.fillColor("#666").fontSize(10);
-    // Summary
-    const top = doc.y;
-    doc
-      .rect(36, top, doc.page.width - 72, 58)
-      .fillAndStroke("#f7fff8", "#e6f2e9");
-    doc.fillColor("#666").fontSize(10);
+    // Address
+    doc.moveDown(0.5);
+    doc.font("Helvetica").fillColor("#000").fontSize(9)
+      .text("123/C, Main Street, Colombo 01, Sri Lanka", contentX, undefined, {
+        width: contentW, align: "center",
+      });
 
-    doc.text("Total Items", 48, top + 10);
-    doc.text("Expiry Item Count", 220, top + 10);
-    doc.text("Low Stock Count", 410, top + 10);
-    doc.fontSize(14).fillColor("#111");
-    doc.text(String(totalItems), 48, top + 24);
-    doc
-      .fillColor(expiryItemCount ? "#b26a00" : "#1f6f24")
-      .text(String(expiryItemCount), 220, top + 24);
-    doc
-      .fillColor(lowStockCount ? "#c1121f" : "#1f6f24")
-      .text(String(lowStockCount), 410, top + 24);
-    doc.moveDown(2).fillColor("#222");
+    // Report Title
+    doc.moveDown(1.2);
+    doc.font("Helvetica-Bold").fillColor("#000").fontSize(14)
+      .text("Coconut Products Inventory Report", contentX, undefined, {
+        width: contentW, align: "center",
+      });
 
-    // // Table headers
-    // let y = doc.y + 6;
-    // const xs = [36, 120, 260, 340, 420, 500, 580];
-    // const headers = ["Product ID", "Product Name", "Qty On Hand", "QTY Reserved", "Avg Cost", "Expiry", "Note"];
-    // doc.rect(36, y, doc.page.width - 72, 22).fill("#1a8f3e");
-    // doc.fillColor("#fff").fontSize(11);
-    // headers.forEach((h, i) => {
-    //   doc.text(h, xs[i] + 4, y + 6, { width: (xs[i + 1] || (doc.page.width - 36)) - xs[i] - 8 });
-    // });
-    // y += 22;
-    // ---- Table layout that fits the page ----
-    const contentX = 36;
-    const contentW = doc.page.width - 72; // printable width
-    const ROW_H = 26; // data row height (was 22)
-    const HEADER_H = 30; // header row height (was 22)
-    const HEADER_FONT = 10; // slightly smaller so it fits on one line
-    const DATA_FONT = 10;
+    // Generated on (right aligned)
+    doc.moveDown(0.9);
+    const metaY = doc.y;
+    doc.font("Helvetica").fillColor("#000").fontSize(10)
+      .text(`Generated on: ${new Date().toLocaleString()}`, contentX, metaY, {
+        width: contentW, align: "right",
+      });
 
-    // label, width, alignment
-    const COLS = [
-      ["Product ID", 95, "left"],
-      ["Product Name", 120, "left"],
-      ["Qty On Hand", 80, "left"],
-      ["QTY Reserved", 80, "left"],
-      ["Avg Cost", 70, "left"],
-      ["Expiry", contentW - 435, "left"],
+    // --- Summary block (4 items inline) ---
+    doc.moveDown(0.8);
+    const boxH = 72;
+    const boxY = doc.y;
+    doc.save();
+    doc.rect(contentX, boxY, contentW, boxH).fillAndStroke("#f7fff8", "#e6f2e9");
+    doc.restore();
+
+    const cols = 4;
+    const colW = contentW / cols;
+    const labels = [
+      "Total Items",
+      "Expiry Item Count",
+      "Low Stock Count",
+      "Total Inventory Value",
+    ];
+    const values = [
+      String(totalItems),
+      String(expiryItemCount),
+      String(lowStockCount),
+      fmtLKR(totalInventoryValue),
     ];
 
-    const drawHeader = (y) => {
-      doc.rect(contentX, y, contentW, HEADER_H).fill("#1a8f3e");
+    for (let i = 0; i < cols; i++) {
+      const cx = contentX + i * colW;
+      doc.fillColor("#666").fontSize(10)
+        .text(labels[i], cx, boxY + 12, { width: colW, align: "center" });
+
+      let valColor = "#111";
+      if (i === 1) valColor = expiryItemCount ? "#b26a00" : "#1f6f24"; // expiry
+      if (i === 2) valColor = lowStockCount ? "#c1121f" : "#1f6f24";     // low stock
+
+      doc.fillColor(valColor).fontSize(14)
+        .text(values[i], cx, boxY + 32, { width: colW, align: "center" });
+    }
+
+    // move cursor below summary box
+    doc.y = boxY + boxH + 14;
+    doc.fillColor("#222");
+
+    // --- Table layout ---
+    const ROW_H = 24;
+    const HEADER_H = 28;
+    const HEADER_FONT = 10;
+    const DATA_FONT = 10;
+
+    // 6 columns (Notes removed)
+    const FRACTIONS = [0.16, 0.28, 0.14, 0.14, 0.14, 0.14];
+    let widths = FRACTIONS.map(f => Math.floor(contentW * f));
+    const used = widths.reduce((a, b) => a + b, 0);
+    widths[widths.length - 1] += Math.round(contentW - used); // fix rounding on last col
+
+    const COLS = [
+      ["Product ID", widths[0]],
+      ["Product Name", widths[1]],
+      ["Qty On Hand", widths[2]],
+      ["Qty Reserved", widths[3]],
+      ["Avg Cost(Rs)", widths[4]],
+      ["Expiry", widths[5]],
+    ];
+
+    // Precompute x positions for borders and text
+    const colXs = [contentX];
+    for (let i = 0; i < COLS.length; i++) {
+      colXs.push(colXs[i] + COLS[i][1]);
+    }
+
+    const drawHeader = (yy) => {
+      // Header background
+      doc.save();
+      doc.rect(contentX, yy, contentW, HEADER_H).fill(GREEN);
+      doc.restore();
+
+      // Header text
       let x = contentX;
       doc.fillColor("#fff").fontSize(HEADER_FONT);
       COLS.forEach(([label, w]) => {
-        doc.text(label, x, y + (HEADER_H - HEADER_FONT) / 2, {
-          width: w,
+        doc.text(label, x + 6, yy + (HEADER_H - HEADER_FONT) / 2, {
+          width: w - 12,
           align: "left",
+          lineBreak: false,
+          ellipsis: true,
         });
         x += w;
       });
-      return y + HEADER_H;
+
+      // Header borders (outer + verticals)
+      doc.save();
+      doc.lineWidth(0.7).strokeColor(HEADER_BORDER);
+      // outer rectangle
+      doc.rect(contentX, yy, contentW, HEADER_H).stroke();
+      // vertical lines
+      for (let i = 1; i < colXs.length - 0; i++) {
+        doc.moveTo(colXs[i], yy).lineTo(colXs[i], yy + HEADER_H).stroke();
+      }
+      doc.restore();
+
+      return yy + HEADER_H;
     };
 
-    let y = drawHeader(doc.y + 6);
+    // Draw initial header
+    y = drawHeader(doc.y);
 
-    // // Rows
-    // products.forEach((p, idx) => {
-    //   const low = p.qty_on_hand < LOW_STOCK_THRESHOLD;
-    //   const soonExp = p.expire_date && new Date(p.expire_date) <= soon;
-    //   const expired = p.expire_date && new Date(p.expire_date) < now;
+    // Helper to draw a single row with borders
+    const drawRow = (rowY, idx, valuesForCols, styles = {}) => {
+      const { bandAlt = true } = styles;
 
-    //   doc.rect(36, y, doc.page.width - 72, 22).fill(idx % 2 ? "#fff" : "#f9f9f9");
+      // background (zebra)
+      doc.save();
+      doc.rect(contentX, rowY, contentW, ROW_H)
+        .fill(bandAlt && idx % 2 ? "#ffffff" : "#f9f9f9");
+      doc.restore();
 
-    //   doc.fontSize(10).fillColor("#222");
-    //   doc.text(p.pro_id, xs[0] + 4, y + 6, { width: xs[1] - xs[0] - 8 });
-    //   doc.text(p.pro_name, xs[1] + 4, y + 6, { width: xs[2] - xs[1] - 8 });
+      // text
+      let tx = contentX;
+      doc.fontSize(DATA_FONT);
+      valuesForCols.forEach((cell, i) => {
+        const { text, color = "#222" } = typeof cell === "object" && cell !== null
+          ? cell
+          : { text: cell };
+        doc.fillColor(color).text(String(text ?? ""), tx + 6, rowY + (ROW_H - DATA_FONT) / 2, {
+          width: COLS[i][1] - 12,
+          align: "left",
+          lineBreak: false,
+          ellipsis: true,
+        });
+        tx += COLS[i][1];
+      });
 
-    //   // Qty On Hand (red if < 10000)
-    //   doc.fillColor(low ? "#c1121f" : "#222")
-    //      .text(String(p.qty_on_hand), xs[2] + 4, y + 6, { width: xs[3] - xs[2] - 8 });
+      // borders (outer + verticals + bottom)
+      doc.save();
+      doc.lineWidth(0.5).strokeColor(BORDER);
+      // outer rectangle around the row
+      doc.rect(contentX, rowY, contentW, ROW_H).stroke();
+      // vertical separators
+      for (let i = 1; i < colXs.length - 0; i++) {
+        doc.moveTo(colXs[i], rowY).lineTo(colXs[i], rowY + ROW_H).stroke();
+      }
+      doc.restore();
+    };
 
-    //   // QTY Reserved
-    //   doc.fillColor("#222").text(String(p.qty_reserved), xs[3] + 4, y + 6, { width: xs[4] - xs[3] - 8 });
-
-    //   // Avg Cost
-    //   doc.text((p.std_cost ?? 0).toFixed(2), xs[4] + 4, y + 6, { width: xs[5] - xs[4] - 8 });
-
-    //   // Expiry
-    //   let expiryText = "-";
-    //   if (p.expire_date) {
-    //     expiryText = expired ? "Expired" : new Date(p.expire_date).toLocaleDateString();
-    //   }
-    //   doc.fillColor(soonExp ? "#b26a00" : "#222")
-    //      .text(expiryText, xs[5] + 4, y + 6, { width: xs[6] - xs[5] - 8 });
-
-    //   // Note
-    //   doc.fillColor("#222").text(p.pro_description || "", xs[6] + 4, y + 6);
-
-    //   y += 22;
-    // });
-
-    // ---- Rows (each cell drawn within its width) ----
+    // --- Rows ---
     products.forEach((p, idx) => {
-      const low = p.qty_on_hand < LOW_STOCK_THRESHOLD;
+      const low = Number(p.qty_on_hand || 0) < LOW_STOCK_THRESHOLD;
       const soonExp = p.expire_date && new Date(p.expire_date) <= soon;
       const expired = p.expire_date && new Date(p.expire_date) < now;
 
-      // banded row background
-      doc
-        .rect(contentX, y, contentW, ROW_H)
-        .fill(idx % 2 ? "#ffffff" : "#f9f9f9");
-
-      // ✅ define x for this row
-      let x = contentX;
-
-      // draw a cell (vertically centered text)
-      const cell = (w, text, align = "left", color = "#222") => {
-        doc
-          .fillColor(color)
-          .fontSize(DATA_FONT)
-          .text(String(text ?? ""), x + 4, y + (ROW_H - DATA_FONT) / 2, {
-            width: w - 8,
-            align,
-            ellipsis: true,
-          });
-        x += w;
-      };
-
-      // cells
-      cell(COLS[0][1], p.pro_id, "left");
-      cell(COLS[1][1], p.pro_name, "left");
-      cell(COLS[2][1], p.qty_on_hand, "left", low ? "#c1121f" : "#222");
-      cell(COLS[3][1], p.qty_reserved, "left");
-      cell(COLS[4][1], (p.std_cost ?? 0).toFixed(2), "left");
       const expiryText = p.expire_date
-        ? expired
-          ? "Expired"
-          : new Date(p.expire_date).toLocaleDateString()
+        ? (expired ? "Expired" : new Date(p.expire_date).toLocaleDateString())
         : "-";
-      cell(COLS[5][1], expiryText, "left", soonExp ? "#b26a00" : "#222");
 
-      // after finishing a row
+      const rowCells = [
+        { text: p.pro_id },
+        { text: p.pro_name },
+        { text: p.qty_on_hand, color: low ? "#c1121f" : "#222" },
+        { text: p.qty_reserved },
+        { text: fmtMoney(p.std_cost) }, // 10,000.00 style (no LKR prefix)
+        { text: expiryText, color: soonExp ? "#b26a00" : "#222" },
+      ];
+
+      drawRow(y, idx, rowCells);
       y += ROW_H;
 
-      // page break: redraw header on new page
+      // Page break + redraw header
       if (y > doc.page.height - 72) {
         doc.addPage();
+        // recompute positions on new page (contentX/W same, so colXs still valid)
         y = drawHeader(48);
       }
     });
@@ -229,4 +276,4 @@ export async function getCocoInventoryReportPDF (req, res) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error generating PDF" });
   }
-};
+}

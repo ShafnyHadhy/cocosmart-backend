@@ -1,10 +1,9 @@
-// controllers/StockController.js
 import Stock from "../models/StockModel.js";
 
 // ===== Create =====
 export async function addStock(req, res, next) {
   const {
-    stock_id,
+    // stock_id ❌ auto-generated
     item_id,
     category,
     type,
@@ -18,40 +17,37 @@ export async function addStock(req, res, next) {
   let stock;
 
   try {
-      // ===== Validate date: must be between today and 7 days ago =====
- if (!date) {
-  return res.status(400).json({ message: "Date is required." });
-}
+    // ===== Validate date: must be between today and 7 days ago =====
+    if (!date) {
+      return res.status(400).json({ message: "Date is required." });
+    }
 
-const d = new Date(date); // may be parsed as UTC midnight
-const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // local 00:00
-const todayDay = new Date(); todayDay.setHours(0,0,0,0);
-const oneWeekAgo = new Date(todayDay); oneWeekAgo.setDate(todayDay.getDate() - 7);
+    const d = new Date(date);
+    const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // local 00:00
+    const todayDay = new Date();
+    todayDay.setHours(0, 0, 0, 0);
+    const oneWeekAgo = new Date(todayDay);
+    oneWeekAgo.setDate(todayDay.getDate() - 7);
 
-if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
-  return res.status(400).json({
-    message: "Date must be within the last 7 days and not in the future.",
-  });
-}
+    if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
+      return res.status(400).json({
+        message: "Date must be within the last 7 days and not in the future.",
+      });
+    }
 
     stock = new Stock({
-      stock_id,
       item_id,
       category,
       type,
       reason,
       qty,
       tot_value,
-     date: enteredDay,   
+      date: enteredDay,
       enter_by,
     });
     await stock.save();
   } catch (err) {
     console.log(err);
-    // duplicate check for stock_id
-    if (err.code === 11000 && err.keyPattern?.stock_id) {
-      return res.status(409).json({ message: "stock_id already exists" });
-    }
     return res.status(500).json({ message: "unable to add Stock " });
   }
 
@@ -82,7 +78,7 @@ export async function getAllStocks(req, res, next) {
 export async function getStockById(req, res, next) {
   const id = req.params.id;
 
-  let stock
+  let stock;
 
   try {
     stock = await Stock.findById(id);
@@ -91,7 +87,7 @@ export async function getStockById(req, res, next) {
   }
 
   if (!stock) {
-    return res.status(404).json({ message: "Stocks not found" });
+    return res.status(404).json({ message: "Stock not found" });
   }
   return res.status(200).json({ stock });
 }
@@ -101,8 +97,8 @@ export async function updateStock(req, res, next) {
   const id = req.params.id;
 
   const {
-    stock_id, // stripped (locked)
-    _id,     // stripped
+    // stock_id ❌ not updatable
+    _id, // stripped
     item_id,
     category,
     type,
@@ -123,24 +119,24 @@ export async function updateStock(req, res, next) {
     enter_by,
   };
 
-    // handle date separately with validation
- if (date === null || date === "") {
-  // leave existing date as-is
-} else if (date) {
-  const d = new Date(date);
-  const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const todayDay = new Date(); todayDay.setHours(0,0,0,0);
-  const oneWeekAgo = new Date(todayDay); oneWeekAgo.setDate(todayDay.getDate() - 7);
+  // handle date separately with validation
+  if (date === null || date === "") {
+    // leave existing date as-is
+  } else if (date) {
+    const d = new Date(date);
+    const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const todayDay = new Date();
+    todayDay.setHours(0, 0, 0, 0);
+    const oneWeekAgo = new Date(todayDay);
+    oneWeekAgo.setDate(todayDay.getDate() - 7);
 
-  if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
-    return res.status(400).json({
-      message: "Date must be within the last 7 days and not in the future.",
-    });
+    if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
+      return res.status(400).json({
+        message: "Date must be within the last 7 days and not in the future.",
+      });
+    }
+    allowed.date = enteredDay;
   }
-  allowed.date = enteredDay; // << IMPORTANT
-}
-
-
 
   let stock;
   try {
@@ -154,11 +150,9 @@ export async function updateStock(req, res, next) {
   }
 
   if (!stock) {
-    return res
-      .status(404)
-      .json({ message: "Unable to update stock " });
+    return res.status(404).json({ message: "Unable to update stock " });
   }
-  return res.status(200).json({ stock});
+  return res.status(200).json({ stock });
 }
 
 // ===== Delete =====
@@ -173,9 +167,7 @@ export async function deleteStock(req, res, next) {
     console.log(err);
   }
   if (!stock) {
-    return res
-      .status(404)
-      .json({ message: "Unable to delete the stock " });
+    return res.status(404).json({ message: "Unable to delete the stock " });
   }
   return res.status(200).json({ stock });
 }
