@@ -27,6 +27,9 @@ import rorderRoutes from "./routes/rorderRoutes.js";
 
 
 
+//import productRouter from "./routes/productRouter.js";
+import taskRouter from './routes/taskRoutes.js';
+import workerRouter from './routes/workerRoutes.js';
 
 //loads whats inside on .env file
 dotenv.config();
@@ -118,8 +121,7 @@ app.use("/api/drivers", driverRoutes);
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/users", userRoutes);
-//app.use("/api/products", productRouter);
-//app.use("/api/orders", orderRouter);
+
 app.use("/api/plots", plantationRouter);
 
 app.use("/api/cocoProducts", cocoProductRouter)
@@ -127,6 +129,9 @@ app.use("/api/purchasedItems", purchasedItemRouter)
 app.use("/api/suppliers", supplierRouter)
 app.use("/api/stocks", stockRoutes);
 app.use("/api/rorders", rorderRoutes);  
+
+app.use('/api/tasks', taskRouter);
+app.use('/api/workers', workerRouter);
 
 app.listen(5000, 
     ()=>{

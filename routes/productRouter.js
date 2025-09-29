@@ -12,7 +12,6 @@ productRouter.get('/search', (req,res) => {
         message: "Searching!!!"
     });
 })
-
 //if we use :productID, it always has to be at the end
 productRouter.delete('/:productID', deleteProduct);
 productRouter.put('/:productID', updateProduct);
