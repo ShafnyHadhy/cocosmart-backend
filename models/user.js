@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: "user",
-      enum: ["admin", "worker", "user", "Pro.Staff", "HRM"],
+      enum: ["admin", "worker", "user", "Pro.Staff", "HRM", "Inventory"],
     },
     isBlock: {
       type: Boolean,

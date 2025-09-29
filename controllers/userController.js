@@ -199,3 +199,9 @@ export function isCustomer(req) {
 
   return true;
 }
+
+export function isInventory(req) {
+  if (req.user == null) return false;
+  if (req.user.role !== "Inventory") return false;
+  return true;
+}

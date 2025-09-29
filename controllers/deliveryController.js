@@ -3,7 +3,7 @@ import Driver from "../models/driver.js";
 import Vehicle from "../models/vehicle.js";
 import Order from "../models/order.js";
 
-// Create Delivery - FIXED
+// Assign Delivery - FIXED
 export const assignDelivery = async (req, res) => {
   try {
     const { orderId, vehicle, driver, route, scheduledDate } = req.body;
@@ -17,9 +17,9 @@ export const assignDelivery = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
-
+    // Create a delivery entry
     const newDelivery = new Delivery({
-      order: order._id, // Use the ObjectId reference
+      order: order._id,
       vehicle,
       driver,
       route,
