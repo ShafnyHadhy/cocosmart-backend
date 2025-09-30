@@ -4,9 +4,9 @@ import User from "../models/user.js";
 // Create a worker linked to an existing user with role "worker"
 export const createWorker = async (req, res) => {
   try {
-    const { workerId, userEmail, jobRole, isAvailable, dateOfBirth } = req.body;
-    if (!workerId || !userEmail || !dateOfBirth) {
-      return res.status(400).json({ message: "workerId, userEmail, and dateOfBirth are required" });
+    const { workerId, userEmail, jobRole, isAvailable, dateOfBirth, nic } = req.body;
+    if (!workerId || !userEmail || !dateOfBirth || !nic) {
+      return res.status(400).json({ message: "workerId, userEmail, dateOfBirth, and nic are required" });
     }
 
     // Validate age (18-40)
@@ -27,12 +27,12 @@ export const createWorker = async (req, res) => {
       return res.status(400).json({ message: "User must exist and have role 'worker'" });
     }
 
-    const exists = await Worker.findOne({ $or: [{ workerId }, { userEmail }] });
+    const exists = await Worker.findOne({ $or: [{ workerId }, { userEmail }, { nic }] });
     if (exists) {
-      return res.status(409).json({ message: "Worker with same workerId or userEmail already exists" });
+      return res.status(409).json({ message: "Worker with same workerId, userEmail, or NIC already exists" });
     }
 
-    const worker = new Worker({ workerId, userEmail, jobRole, isAvailable, dateOfBirth });
+    const worker = new Worker({ workerId, userEmail, jobRole, isAvailable, dateOfBirth, nic });
     await worker.save();
     res.status(201).json(worker);
   } catch (err) {

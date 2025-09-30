@@ -13,6 +13,7 @@ import {
   updateTaskStatusByWorker,
   getTaskAnalytics,
   getWorkerAnalytics,
+  assignWorkerToTask,
 } from "../controllers/taskController.js";
 
 const router = express.Router();
@@ -29,5 +30,6 @@ router.delete("/:taskId", softDeleteTask);
 router.post("/:taskId/restore", restoreTask);
 router.delete("/:taskId/permanent", permanentDeleteTask);
 router.patch("/:taskId/status", updateTaskStatusByWorker);
+router.post("/:taskId/assign", assignWorkerToTask);
 
 export default router;
