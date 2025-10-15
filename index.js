@@ -81,12 +81,12 @@ mongoose.connect(connectionString).then(
     }
 )
 
-// Routes
-app.use("/api/users", userRoutes);
+//app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
-app.use("/api/orders", orderRouter);
+app.use("/api/orders", orderRouter)
 app.use("/api/expenses", expenseRouter);
 app.use("/api/finances", financeRouter);
+// Routes
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/vehicles", vehicleRoutes);
@@ -94,18 +94,15 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/users", userRoutes);
 
 app.use("/api/plots", plantationRouter);
-app.use("/api/chat", chatRouter); // Use the new chat router
 
 app.use("/api/cocoProducts", cocoProductRouter)
 app.use("/api/purchasedItems", purchasedItemRouter)
 app.use("/api/suppliers", supplierRouter)
-app.use("/api/rorders", rorderRoutes);  
 app.use("/api/stocks", stockRoutes);
+app.use("/api/rorders", rorderRoutes);  
 
 app.use('/api/tasks', taskRouter);
 app.use('/api/workers', workerRouter);
-
-app.use("/api/inventory/requests", inventoryRequestRoutes);
 
 app.listen(5000, 
     ()=>{
