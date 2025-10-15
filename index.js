@@ -25,11 +25,10 @@ import supplierRouter from "./routes/SupplierRoute.js";
 import stockRoutes from "./routes/stockRoutes.js";
 import rorderRoutes from "./routes/rorderRoutes.js"; 
 
-
-
 //import productRouter from "./routes/productRouter.js";
 import taskRouter from './routes/taskRoutes.js';
 import workerRouter from './routes/workerRoutes.js';
+import inventoryRequestRoutes from "./routes/inventoryRequestRoutes.js";
 
 //loads whats inside on .env file
 dotenv.config();
@@ -132,6 +131,8 @@ app.use("/api/rorders", rorderRoutes);
 
 app.use('/api/tasks', taskRouter);
 app.use('/api/workers', workerRouter);
+
+app.use("/api/inventory/requests", inventoryRequestRoutes);
 
 app.listen(5000, 
     ()=>{
