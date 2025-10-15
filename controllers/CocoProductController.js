@@ -12,26 +12,6 @@ function todayAt00() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 async function logStock({ item_id, type, reason, qty, std_cost, unit_cost, enter_by }) {
   if (!qty || qty <= 0) return;
   await Stock.create({

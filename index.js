@@ -19,7 +19,6 @@ import plantationRouter from "./routes/plantationRouter.js";
 import cocoProductRouter from "./routes/CocoProductRoute.js";
 import purchasedItemRouter from "./routes/PurchasedItemRoute.js";
 import supplierRouter from "./routes/SupplierRoute.js";
-import stockRoutes from "./routes/stockRoutes.js";
 import rorderRoutes from "./routes/rorderRoutes.js"; 
 
 //import productRouter from "./routes/productRouter.js";
@@ -27,6 +26,9 @@ import taskRouter from './routes/taskRoutes.js';
 import workerRouter from './routes/workerRoutes.js';
 import inventoryRequestRoutes from "./routes/inventoryRequestRoutes.js";
 import chatRouter from "./routes/chatRouter.js"; // Import the new chat router
+import stockRoutes from "./routes/stockRoutes.js";
+
+
 
 //loads whats inside on .env file
 dotenv.config();
@@ -97,8 +99,8 @@ app.use("/api/chat", chatRouter); // Use the new chat router
 app.use("/api/cocoProducts", cocoProductRouter)
 app.use("/api/purchasedItems", purchasedItemRouter)
 app.use("/api/suppliers", supplierRouter)
-app.use("/api/stocks", stockRoutes);
 app.use("/api/rorders", rorderRoutes);  
+app.use("/api/stocks", stockRoutes);
 
 app.use('/api/tasks', taskRouter);
 app.use('/api/workers', workerRouter);
