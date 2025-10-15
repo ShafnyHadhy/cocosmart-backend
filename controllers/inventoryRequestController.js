@@ -25,9 +25,8 @@ export const createInventoryRequest = async (req, res) => {
 // Get all requests (for admin or inventory manager)
 export const getAllRequests = async (req, res) => {
   try {
-    const requests = await InventoryRequest.find()
-      .populate("productId", "name price")
-      .populate("requestedBy", "name email")
+    const requests = await InventoryRequest
+      .find()
       .sort({ createdAt: -1 });
 
     res.status(200).json(requests);
