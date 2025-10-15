@@ -69,7 +69,7 @@ export const createTask = async (req, res) => {
       scheduledTime, 
       estimatedHours, 
       status, 
-      assignedWorkers 
+      assignedWorkers: assignedWorkers || [] 
     });
     await newTask.save();
     res.status(201).json(newTask);
@@ -339,6 +339,50 @@ export const permanentDeleteTask = async (req, res) => {
     const task = await Task.findOneAndDelete({ taskId: req.params.taskId });
     if (!task) return res.status(404).json({ message: "Task not found" });
     res.json({ message: "Task permanently deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Assign worker to existing task
+export const assignWorkerToTask = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { workerId } = req.body;
+    
+    if (!workerId) {
+      return res.status(400).json({ message: "Worker ID is required" });
+    }
+    
+    // Check if task exists
+    const task = await Task.findOne({ taskId, deleted: false });
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    
+    // Check if worker exists
+    const worker = await Worker.findOne({ workerId });
+    if (!worker) {
+      return res.status(404).json({ message: "Worker not found" });
+    }
+    
+    // Initialize assignedWorkers array if it doesn't exist
+    if (!task.assignedWorkers) {
+      task.assignedWorkers = [];
+    }
+    
+    // Check if worker is already assigned
+    if (task.assignedWorkers.includes(workerId)) {
+      return res.status(400).json({ message: "Worker is already assigned to this task" });
+    }
+    
+    // Add worker to assigned workers
+    task.assignedWorkers.push(workerId);
+    await task.save();
+    
+    console.log('Worker assigned successfully:', { taskId, workerId, assignedWorkers: task.assignedWorkers });
+    
+    res.json({ message: "Worker assigned to task successfully", task });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

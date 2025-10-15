@@ -7,6 +7,7 @@ const workerSchema = new mongoose.Schema(
     jobRole: { type: String, default: "" },
     isAvailable: { type: Boolean, default: true },
     dateOfBirth: { type: Date, required: true },
+    nic: { type: String, required: true, unique: true },
     skills: [{ type: String }], // Array of skills
     hourlyRate: { type: Number, min: 0 },
     performanceRating: { type: Number, min: 0, max: 5, default: 0 },
