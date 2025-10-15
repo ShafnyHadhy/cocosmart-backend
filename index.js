@@ -1,21 +1,42 @@
 import express from "express";
-import mongoose from "mongoose"; //library to establish database connection
-import userRouter from "./routes/userRouter.js";
-import jwt from 'jsonwebtoken'
-import cors from 'cors';
-import dotenv from 'dotenv';
+import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+import cors from "cors";
+import dotenv from "dotenv";
+import productRouter from "./routes/productRouter.js";
+import expenseRouter from "./routes/expenseRouter.js";
+import financeRouter from "./routes/financeRouter.js";
+import orderRouter from "./routes/orderRouter.js";
+import deliveryRoutes from "./routes/deliveryRoutes.js";
+import driverRoutes from "./routes/driverRoutes.js";
+import vehicleRoutes from "./routes/vehicleRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
+import userRoutes from "./routes/userRouter.js";
+// { requestPasswordReset } from "../controllers/userController.js";
+import plantationRouter from "./routes/plantationRouter.js";
+//import productRouter from "./routes/productRouter.js";
+// const cocoProductRouter = require("./routes/CocoProductRoute");
+import cocoProductRouter from "./routes/CocoProductRoute.js";
+import purchasedItemRouter from "./routes/PurchasedItemRoute.js";
+import supplierRouter from "./routes/SupplierRoute.js";
+import rorderRoutes from "./routes/rorderRoutes.js"; 
+
+//import productRouter from "./routes/productRouter.js";
+import taskRouter from './routes/taskRoutes.js';
+import workerRouter from './routes/workerRoutes.js';
+import inventoryRequestRoutes from "./routes/inventoryRequestRoutes.js";
+import chatRouter from "./routes/chatRouter.js"; // Import the new chat router
+import stockRoutes from "./routes/stockRoutes.js";
+
+
 
 //loads whats inside on .env file
 dotenv.config();
-
-//making const variable
 const app = express();
 
-//a middleware to connect backend and frontend
+// Middleware
 app.use(cors());
-
-//Middleware to parse JSON bodies
-app.use(express.json())
+app.use(express.json()); // JSON body parsing
 
 //Middleware to parse requests with token
 app.use(
@@ -32,7 +53,7 @@ app.use(
                    if(decoded == null){
                         res.json(
                             {
-                                message: "Invalid token please login agin."
+                                message: "Invalid token please login again."
                             }
                         )
                         return
@@ -60,7 +81,31 @@ mongoose.connect(connectionString).then(
     }
 )
 
-app.use("/api/users", userRouter)
+// Routes
+app.use("/api/users", userRoutes);
+app.use("/api/products", productRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/expenses", expenseRouter);
+app.use("/api/finances", financeRouter);
+app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/drivers", driverRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/users", userRoutes);
+
+app.use("/api/plots", plantationRouter);
+app.use("/api/chat", chatRouter); // Use the new chat router
+
+app.use("/api/cocoProducts", cocoProductRouter)
+app.use("/api/purchasedItems", purchasedItemRouter)
+app.use("/api/suppliers", supplierRouter)
+app.use("/api/rorders", rorderRoutes);  
+app.use("/api/stocks", stockRoutes);
+
+app.use('/api/tasks', taskRouter);
+app.use('/api/workers', workerRouter);
+
+app.use("/api/inventory/requests", inventoryRequestRoutes);
 
 app.listen(5000, 
     ()=>{

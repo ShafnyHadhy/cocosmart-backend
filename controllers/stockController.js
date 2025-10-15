@@ -1,0 +1,190 @@
+import Stock from "../models/StockModel.js";
+
+// ===== Create =====
+export async function addStock(req, res, next) {
+  const {
+    // stock_id ❌ auto-generated
+    item_id,
+    category,
+    type,
+    reason,
+    qty,
+    tot_value,
+    date,
+    enter_by,
+  } = req.body;
+
+  let stock;
+
+  try {
+    // ===== Validate date: must be between today and 7 days ago =====
+    if (!date) {
+      return res.status(400).json({ message: "Date is required." });
+    }
+
+    const d = new Date(date);
+    const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()); // local 00:00
+    const todayDay = new Date();
+    todayDay.setHours(0, 0, 0, 0);
+    const oneWeekAgo = new Date(todayDay);
+    oneWeekAgo.setDate(todayDay.getDate() - 7);
+
+    if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
+      return res.status(400).json({
+        message: "Date must be within the last 7 days and not in the future.",
+      });
+    }
+
+    stock = new Stock({
+      item_id,
+      category,
+      type,
+      reason,
+      qty,
+      tot_value,
+      date: enteredDay,
+      enter_by,
+    });
+    await stock.save();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "unable to add Stock " });
+  }
+
+  if (!stock) {
+    return res.status(404).json({ message: "unable to add Stock " });
+  }
+  return res.status(200).json({ stock });
+}
+
+// ===== Read / Display all =====
+export async function getAllStocks(req, res, next) {
+  let stocks;
+
+  try {
+    stocks = await Stock.find();
+  } catch (err) {
+    console.log(err);
+  }
+
+  if (!stocks) {
+    return res.status(404).json({ message: "Stocks not found" });
+  }
+
+  return res.status(200).json({ stocks });
+}
+
+// ===== Get by Mongo _id =====
+export async function getStockById(req, res, next) {
+  const id = req.params.id;
+
+  let stock;
+
+  try {
+    stock = await Stock.findById(id);
+  } catch (err) {
+    console.log(err);
+  }
+
+  if (!stock) {
+    return res.status(404).json({ message: "Stock not found" });
+  }
+  return res.status(200).json({ stock });
+}
+
+// ===== Update =====
+export async function updateStock(req, res, next) {
+  const id = req.params.id;
+
+  const {
+    // stock_id ❌ not updatable
+    _id, // stripped
+    item_id,
+    category,
+    type,
+    reason,
+    qty,
+    tot_value,
+    date,
+    enter_by,
+  } = req.body;
+
+  const allowed = {
+    item_id,
+    category,
+    type,
+    reason,
+    qty,
+    tot_value,
+    enter_by,
+  };
+
+  // handle date separately with validation
+  if (date === null || date === "") {
+    // leave existing date as-is
+  } else if (date) {
+    const d = new Date(date);
+    const enteredDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const todayDay = new Date();
+    todayDay.setHours(0, 0, 0, 0);
+    const oneWeekAgo = new Date(todayDay);
+    oneWeekAgo.setDate(todayDay.getDate() - 7);
+
+    if (enteredDay < oneWeekAgo || enteredDay > todayDay) {
+      return res.status(400).json({
+        message: "Date must be within the last 7 days and not in the future.",
+      });
+    }
+    allowed.date = enteredDay;
+  }
+
+  let stock;
+  try {
+    stock = await Stock.findByIdAndUpdate(
+      id,
+      { $set: allowed },
+      { new: true, runValidators: true }
+    );
+  } catch (err) {
+    console.log(err);
+  }
+
+  if (!stock) {
+    return res.status(404).json({ message: "Unable to update stock " });
+  }
+  return res.status(200).json({ stock });
+}
+
+// ===== Delete =====
+export async function deleteStock(req, res, next) {
+  const id = req.params.id;
+
+  let stock;
+
+  try {
+    stock = await Stock.findByIdAndDelete(id);
+  } catch (err) {
+    console.log(err);
+  }
+  if (!stock) {
+    return res.status(404).json({ message: "Unable to delete the stock " });
+  }
+  return res.status(200).json({ stock });
+}
+
+// ===== Utility: check whether stock_id already exists =====
+export async function checkStockId(req, res) {
+  try {
+    const { stock_id } = req.query;
+    if (!stock_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "stock_id is required" });
+    }
+    const exists = await Stock.exists({ stock_id });
+    return res.json({ success: true, exists: !!exists });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}
