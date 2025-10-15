@@ -45,6 +45,53 @@ const findProductByKeywords = async (messageWords) => {
 // A helper function to pick a random item from an array
 const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+// --- Manual Answers for Common Questions ---
+const MANUAL_ANSWERS = {
+  "what is cocosmart": "CocoSmart is an intelligent coconut management system that helps manage plantations, monitor deliveries, track finances, and oversee product sales efficiently.",
+  "who are you": "I'm CocoBot — your friendly assistant for everything related to CocoSmart!",
+  "how does cocosmart work": "CocoSmart connects plantation, driver, product, and finance data into one platform, giving real-time insights for better decision-making.",
+  "what is your purpose": "My purpose is to help you quickly access information about CocoSmart operations, products, and financials.",
+  "what is smart waste management": "Smart waste management uses IoT sensors and data analytics to track waste levels, optimize collection routes, and promote eco-friendly practices.",
+  "who developed cocosmart": "CocoSmart was developed by a dedicated team of SLIIT students passionate about sustainable agriculture and technology.",
+   "how to plant a coconut tree": 
+    "To plant a coconut tree: \n" +
+    "1. Choose a healthy coconut with a sprout.\n" +
+    "2. Select a sunny location with well-draining soil.\n" +
+    "3. Dig a hole about 1 foot deep and wide.\n" +
+    "4. Place the coconut on its side or with the sprout facing up.\n" +
+    "5. Cover with soil, water regularly, and ensure protection from pests.",
+
+  "how to fertilize a coconut tree": 
+    "Fertilizing coconut trees:\n" +
+    "1. Use a balanced fertilizer containing NPK (Nitrogen, Phosphorus, Potassium).\n" +
+    "2. Apply 1-2 kg of fertilizer per year for young trees, increasing with age.\n" +
+    "3. Spread the fertilizer evenly around the drip line of the tree.\n" +
+    "4. Water the tree after applying fertilizer to help absorption.\n" +
+    "5. Repeat 3-4 times a year, depending on soil fertility and tree growth.",
+
+  "how to water a coconut tree": 
+    "Coconut trees need regular watering, especially in the first 6 months.\n" +
+    "Water deeply once or twice a week, keeping the soil moist but not waterlogged.\n" +
+    "Older trees can tolerate dry periods but will produce better yields with consistent watering.",
+
+  "how to care for a coconut tree": 
+    "Caring for coconut trees includes:\n" +
+    "- Regular watering and fertilization.\n" +
+    "- Mulching around the base to retain soil moisture.\n" +
+    "- Removing dead leaves and weeds.\n" +
+    "- Protecting from pests like rhinoceros beetles and red palm weevils.\n" +
+    "- Ensuring good sunlight exposure.",
+
+  "how to harvest coconuts": 
+    "Harvesting coconuts:\n" +
+    "1. Coconuts are typically harvested 6-10 months after flowering.\n" +
+    "2. Use a long pole or climb carefully to reach mature coconuts.\n" +
+    "3. Cut or twist the fruit from the tree.\n" +
+    "4. Handle with care to avoid damage and injury.\n" +
+    "5. Store in a dry, ventilated area until use or sale."
+};
+
+
 export const handleChat = async (req, res) => {
   try {
     const { history } = req.body;
@@ -56,6 +103,26 @@ export const handleChat = async (req, res) => {
     const messageWords = userMessage.split(/\s+/);
 
     let botResponse;
+
+    const userMsg = userMessage.trim().toLowerCase();
+  let matchedManual = false;
+
+  // 🔍 Step 3: Check if user message contains any manual question keyword
+  for (const [question, answer] of Object.entries(MANUAL_ANSWERS)) {
+    // if user's message contains the manual question's phrase
+    if (userMsg.includes(question)) {
+      botResponse = answer;
+      matchedManual = true;
+      break;
+    }
+  }
+
+  // If matched, send the manual response and stop further processing
+  if (matchedManual) {
+    return res.json({ response: botResponse });
+  }
+
+
 
     // 1. Handle specific questions about price
     if (userMessage.includes('price') || userMessage.includes('cost') || userMessage.includes('how much')) {
