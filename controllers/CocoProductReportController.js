@@ -9,7 +9,7 @@ import PDFDocument from "pdfkit";
 import CocoProduct from "../models/CocoProductModel.js";
 
 // --- Rules ---
-const LOW_STOCK_THRESHOLD = 10000; // qty_on_hand < 10000 → red
+const LOW_STOCK_THRESHOLD = 150; // qty_on_hand < 10000 → red
 const EXPIRY_SOON_DAYS = 30;       // within 30 days → orange
 
 // --- Formatters ---
@@ -73,7 +73,7 @@ export async function getCocoInventoryReportPDF(req, res) {
       });
 
     // Hotline / Email / Fax
-    doc.moveDown(0.5);
+    doc.moveDown(0.6);
     doc.font("Helvetica").fillColor("#000").fontSize(9)
       .text("Hotline: +94 77 123 4567 | Email: info@cocosmart.com  |  Fax: +1-234-567-890",
         contentX, undefined, { width: contentW, align: "center" });
@@ -86,14 +86,14 @@ export async function getCocoInventoryReportPDF(req, res) {
       });
 
     // Report Title
-    doc.moveDown(1.2);
+    doc.moveDown(1.5);
     doc.font("Helvetica-Bold").fillColor("#000").fontSize(14)
       .text("Coconut Products Inventory Report", contentX, undefined, {
         width: contentW, align: "center",
       });
 
     // Generated on (right aligned)
-    doc.moveDown(0.9);
+    doc.moveDown(1.2);
     const metaY = doc.y;
     doc.font("Helvetica").fillColor("#000").fontSize(10)
       .text(`Generated on: ${new Date().toLocaleString()}`, contentX, metaY, {
@@ -101,7 +101,7 @@ export async function getCocoInventoryReportPDF(req, res) {
       });
 
     // --- Summary block (4 items inline) ---
-    doc.moveDown(0.8);
+    doc.moveDown(0.6);
     const boxH = 72;
     const boxY = doc.y;
     doc.save();
