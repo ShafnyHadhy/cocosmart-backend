@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { addPurchasedItems, checkItemId, deletePurchasedItem, getAllPurchasedItems, getPurchasedItemById, updatePurchasedItem } from '../controllers/purchasedItemController.js';
+import { addPurchasedItems, checkItemId, deletePurchasedItem, getAllPurchasedItems, getPurchasedItemById, updatePurchasedItem } from '../controllers/PurchasedItemController.js';
 import { getPurchasedItemsReportPDF } from '../controllers/purchasedItemReportController.js';
 
 
