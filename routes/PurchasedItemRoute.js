@@ -3,12 +3,7 @@ import express from 'express';
 import { addPurchasedItems, checkItemId, deletePurchasedItem, getAllPurchasedItems, getPurchasedItemById, updatePurchasedItem } from '../controllers/PurchasedItemController.js';
 import { getPurchasedItemsReportPDF } from '../controllers/purchasedItemReportController.js';
 
-
 const router = express.Router();
-
-
-
-
 
 router.get("/", getAllPurchasedItems);
 router.post("/", addPurchasedItems);
